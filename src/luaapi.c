@@ -22,6 +22,66 @@ int lua_btn(lua_State * l) {
     return 1;
 }
 
+int lua_btnp(lua_State * l) {
+    BYTE key = luaL_checkinteger(l, 1);
+    lua_pushboolean(l, btnp(key));
+    return 1;
+}
+
+int lua_keydown(lua_State * l) {
+    const char * key = luaL_checkstring(l, 1);
+    lua_pushboolean(l, keyDown(key));
+    return 1;
+}
+
+int lua_keypress(lua_State * l) {
+    const char * key = luaL_checkstring(l, 1);
+    lua_pushboolean(l, keyPressed(key));
+    return 1;
+}
+
+int lua_pal(lua_State * l) {
+    int n = lua_gettop(l);
+    if (n > 1) {
+        BYTE col = luaL_checkinteger(l, 1);
+        BYTE ncol = luaL_checkinteger(l, 2);
+        BYTE offset = luaL_optinteger(l, 3, 0);
+        pal(col, ncol, offset);
+    } else {
+        pal(0,0,0);
+        pal(0,0,1);
+        palt(0,1);
+        for (int i = 1; i < 16; i++) {
+            pal(i,i,0);
+            pal(i,i,1);
+            palt(i,0);
+
+        }
+    }
+    return 0;
+}
+
+int lua_palt(lua_State * l) {
+    int n = lua_gettop(l);
+    if (n > 1) {
+        BYTE col = luaL_checkinteger(l, 1);
+        BYTE transp = lua_toboolean(l, 2);
+        palt(col, transp);
+    } else {
+        palt(0,1);
+        for (int i = 0; i < 16; i++) {
+            palt(i, 0);
+        }
+    }
+    return 0;
+}
+
+int lua_input(lua_State * l) {
+    char * aux = NULL;
+    lua_pushstring(l, input());
+    return 1;
+}
+
 int lua_peek(lua_State * l) {
     SHORT address = luaL_checkinteger(l, 1);
     lua_pushnumber(l, peek(address));
@@ -98,6 +158,33 @@ int lua_rectfill(lua_State * l) {
     return 0;
 }
 
+int lua_print(lua_State * l) {
+    /*lua_getglobal(l, "tostring");
+    if (lua_isboolean(l, 1)) {
+        lua_pushboolean(l, lua_toboolean(l, 1));
+    } else {
+        lua_pushstring(l, luaL_checkstring(l, 1));
+    }
+    lua_pcall(l,1,1,0);*/
+    const BYTE * txt = luaL_checkstring(l, 1);
+    //lua_pop(l, -1);
+    //printf("%s\n", txt);
+    short x = luaL_optinteger(l, 2, peek(0x5f26));
+    short y = luaL_optinteger(l, 3, peek(0x5f27));
+    BYTE color = luaL_optinteger(l, 4, peek(0x5f25));
+    /*if (n > 1) {
+        short x = luaL_checkinteger(l, 2);
+        short y = luaL_checkinteger(l, 3);
+        print(txt, x, y, color);
+    } else {
+        print(txt, 0, 0, color);
+    }*/
+    //printf("%d\n", *bool_str);
+    print(txt, x, y, color);
+    //free(bool_str);
+    return 0;
+}
+
 int lua_clip(lua_State * l) {
     int n = lua_gettop(l);
     if (n > 3) {
@@ -126,6 +213,13 @@ int lua_camera(lua_State * l) {
     return 0;
 }
 
+int lua_cursor(lua_State * l) {
+    BYTE x = luaL_optinteger(l, 1, 0);
+    BYTE y = luaL_optinteger(l, 2, 0);
+    cursor(x, y);
+    return 0;
+}
+
 int lua_color(lua_State * l) {
     BYTE col = luaL_checkinteger(l, 1) & 0xf;
     color(col);
@@ -148,6 +242,12 @@ static const struct luaL_Reg juno8[] = {
     {"update", lua_update},
     {"draw", lua_draw},
     {"btn", lua_btn},
+    {"btnp", lua_btnp},
+    {"keydown", lua_keydown},
+    {"keypress", lua_keypress},
+    {"pal", lua_pal},
+    {"palt", lua_palt},
+    {"input", lua_input},
     {"peek", lua_peek},
     {"poke", lua_poke},
     {"pset", lua_pset},
@@ -157,8 +257,10 @@ static const struct luaL_Reg juno8[] = {
     {"circfill", lua_circfill},
     {"rect", lua_rect},
     {"rectfill", lua_rectfill},
+    {"print", lua_print},
     {"clip", lua_clip},
     {"camera", lua_camera},
+    {"cursor", lua_cursor},
     {"color", lua_color},
     {"clear", lua_clear},
     {"_init", jmp},

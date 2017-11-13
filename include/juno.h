@@ -13,7 +13,7 @@
 //#include "junolua.h"
 
 #define MEM_SIZE 32000
-#define BYTE char
+#define BYTE unsigned char
 #define uBYTE unsigned char
 #define SHORT unsigned short
 
@@ -23,7 +23,21 @@
 #define FPS 30
 
 static const Uint8 * keys;
+#include <console.h>
+//#include <console.h>
 #include <api.h>
+
+typedef struct console Console;
+
+typedef enum {
+    CONSOLE,
+    CODE,
+    SPRITE,
+    MAP,
+    SFX,
+    MUSIC,
+    GAME
+} State;
 
 typedef struct {
     uBYTE r;
@@ -33,30 +47,34 @@ typedef struct {
 
 typedef struct {
     union {
-        BYTE memory[MEM_SIZE];
+        uBYTE memory[MEM_SIZE];
         struct {
-            BYTE sprites[0x2000];
-            BYTE map[0x1000];
-            BYTE flags[0x100];
-            BYTE music[0x100];
-            BYTE sfx[0x1100];
-            BYTE user[0x1b00];
-            BYTE persist[0x100];
-            BYTE drawstate[0x40];
-            BYTE hardstate[0x40];
-            BYTE gpio[0x80];
-            BYTE gfx[0x2000];
+            uBYTE sprites[0x2000];
+            uBYTE map[0x1000];
+            uBYTE flags[0x100];
+            uBYTE music[0x100];
+            uBYTE sfx[0x1100];
+            uBYTE user[0x1b00];
+            uBYTE persist[0x100];
+            uBYTE drawstate[0x40];
+            uBYTE hardstate[0x40];
+            uBYTE gpio[0x80];
+            uBYTE gfx[0x2000];
         };
     };
     Color palette[16];
     const Uint8 * keys;
+    Uint8 * oldkeys;
     SDL_Window * window;
     SDL_Renderer * render;
     SDL_Event event;
     lua_State * l;
+    State state;
+    Console * console;
+    void * teste;
     BYTE scale;
-} Console;
-Console * console;
+} Juno;
+Juno * console;
 
 Color hexTorgb(int col);
 
@@ -65,5 +83,8 @@ void init();
 void update();
 
 void draw();
+
+int keyDown(const char * key);
+int keyPressed(const char * key);
 
 #endif // JUNO8_h

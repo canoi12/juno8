@@ -1,4 +1,4 @@
-#include <juno8.h>
+#include <juno.h>
 
 //int palette[2][16] = 
 //_keys[] = {"left", "right", "up", "down", "x", "c"};
@@ -50,13 +50,18 @@ Color hexTorgb(int col) {
 
 void init() {
     printf("Iniciando console...\n");
+    initfont();
     SDL_Init(SDL_INIT_EVERYTHING);
-    console = malloc(sizeof(Console));
+    console = malloc(sizeof(Juno));
+    printf("Memoria para console alocada\n");
     for (int addr = 0; addr < MEM_SIZE; addr++) {
         console->memory[addr] = 0x0;
     }
+    console->state = CONSOLE;
+    console->console = malloc(sizeof(Console));
 
     console->keys = SDL_GetKeyboardState(NULL);
+    console->oldkeys = calloc(sizeof(Uint8),512);
     //console->memory[0x5f25] = 0x7;
 
     // CLIP
@@ -64,6 +69,16 @@ void init() {
 
     // COLOR
     color(0x7);
+
+    // PAL and PALT
+    pal(0,0,0);
+    pal(0,0,1);
+    palt(0,1);
+    for (int i = 1; i < 16; i++) {
+        pal(i,i,0);
+        pal(i,i,1);
+        palt(i,0);
+    }
 
     // SDL
     console->window = SDL_CreateWindow("JUNO-8", SDL_WINDOWPOS_CENTERED,
@@ -86,7 +101,9 @@ void update() {
     //printf("teste update\n");
     SDL_PollEvent(&(console->event));
     lua_getglobal(console->l, "_update");
-    lua_pcall(console->l, 0, 0, 0);
+    if(lua_pcall(console->l, 0, 0, 0)) {
+        printf("Error in _update in pcall()");
+    }
 }
 
 void draw() {
@@ -95,9 +112,23 @@ void draw() {
     SDL_RenderClear(console->render);
     //clear(0);
     lua_getglobal(console->l, "_draw");
-    lua_pcall(console->l, 0, 0, 0);
+    if(lua_pcall(console->l, 0, 0, 0)) {
+        printf("Error in _draw in pcall()\n");
+    }
+
     //pset(1,0,8);
     //SDL_SetRenderDrawColor(console->render,255,0,0,255);
     flip();
     SDL_RenderPresent(console->render);
+}
+
+int keyDown(const char * key) {
+    return console->keys[SDL_GetScancodeFromName(key)];
+}
+
+int keyPressed(const char * key) {
+    int old = console->oldkeys[SDL_GetScancodeFromName(key)];
+    int ret = keyDown(key) && !old;
+    console->oldkeys[SDL_GetScancodeFromName(key)] = keyDown(key);
+    return ret;
 }
