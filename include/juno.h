@@ -6,9 +6,9 @@
 #include <string.h>
 
 #include <SDL2/SDL.h>
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+#include <lua/lua.h>
+#include <lua/lauxlib.h>
+#include <lua/lualib.h>
 
 //#include "junolua.h"
 
@@ -16,6 +16,8 @@
 #define BYTE unsigned char
 #define uBYTE unsigned char
 #define SHORT unsigned short
+#define true 1
+#define false 0
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -27,7 +29,7 @@ static const Uint8 * keys;
 //#include <console.h>
 #include <api.h>
 
-typedef struct console Console;
+typedef struct Console Console;
 
 typedef enum {
     CONSOLE,
@@ -45,7 +47,9 @@ typedef struct {
     uBYTE b;
 } Color;
 
-typedef struct {
+typedef struct Juno Juno;
+
+struct Juno {
     union {
         uBYTE memory[MEM_SIZE];
         struct {
@@ -73,18 +77,17 @@ typedef struct {
     Console * console;
     void * teste;
     BYTE scale;
-} Juno;
-Juno * console;
+};
 
 Color hexTorgb(int col);
 
-void init();
+Juno * init();
 
-void update();
+void update(Juno*);
 
-void draw();
+void draw(Juno*);
 
-int keyDown(const char * key);
-int keyPressed(const char * key);
+int keyDown(Juno*, const char*);
+int keyPressed(Juno*, const char*);
 
 #endif // JUNO8_h

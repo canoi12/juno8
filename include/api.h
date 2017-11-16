@@ -3,46 +3,51 @@
 
 #include <juno.h>
 
+typedef struct Juno Juno;
+
 static uBYTE font[128][5*3];
 
 void initfont();
+void initSheet(Juno*);
 
-int btn(BYTE key);
-int btnp(BYTE key);
+int btn(Juno*, BYTE key);
+int btnp(Juno*, BYTE key);
 
-void pal(BYTE col, BYTE ncol, BYTE offset);
-void palt(BYTE col, BYTE transparent);
+void pal(Juno*, BYTE col, BYTE ncol, BYTE offset);
+void palt(Juno*, BYTE col, BYTE transparent);
 
-char * input();
+char * input(Juno*);
 
-void poke(SHORT address, uBYTE data);
-uBYTE peek(SHORT address);
+void poke(Juno*, SHORT address, uBYTE data);
+uBYTE peek(Juno*, SHORT address);
 
-void pset(short x, short y, BYTE color);
+void pset(Juno*, short x, short y, BYTE color);
 
-int pget(short x, short y);
+int pget(Juno*, short x, short y);
 
-void line(short x0, short y0, short x1, short y1, BYTE color);
+void spr(Juno*, BYTE sn, short x, short y, BYTE flip_h, BYTE flip_v);
 
-void circ(short x, short y, short radius, BYTE color);
-void circfill(short x, short y, short radius, BYTE color);
+void line(Juno*, short x0, short y0, short x1, short y1, BYTE color);
 
-void rect(short x0, short y0, short x1, short y1, BYTE color);
-void rectfill(short x0, short y0, short x1, short y1, BYTE color);
+void circ(Juno*, short x, short y, short radius, BYTE color);
+void circfill(Juno*, short x, short y, short radius, BYTE color);
 
-void printchar(BYTE c, short x, short y, BYTE color);
-void print(const BYTE * text, short x, short y, BYTE color);
+void rect(Juno*, short x0, short y0, short x1, short y1, BYTE color);
+void rectfill(Juno*, short x0, short y0, short x1, short y1, BYTE color);
 
-void color(BYTE color);
+void printchar(Juno*, BYTE c, short x, short y, BYTE color);
+void print(Juno*, const BYTE * text, short x, short y, BYTE color);
 
-void clip(BYTE x, BYTE y, BYTE w, BYTE h);
+void color(Juno*, BYTE color);
 
-void cursor(BYTE x, BYTE y);
+void clip(Juno*, BYTE x, BYTE y, BYTE w, BYTE h);
 
-void camera(short x, short y);
+void cursor(Juno*, BYTE x, BYTE y);
 
-void clear(BYTE color);
+void camera(Juno*, short x, short y);
 
-void flip();
+void clear(Juno*, BYTE color);
+
+void flip(Juno*);
 
 #endif // API_H

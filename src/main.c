@@ -4,19 +4,19 @@
 char * state = "game";
 char text[1024];
 
-void rungame() {
-    if (luaL_loadfile(console->l, "code.lua")) {
+static void rungame(Juno * juno) {
+    if (luaL_loadfile(juno->l, "code.lua")) {
         printf("Error to load code.lua\n");
         exit(1);
     }
 
-    if(lua_pcall(console->l, 0, 0, 0)) {
+    if(lua_pcall(juno->l, 0, 0, 0)) {
         printf("error in pcall()\n");
         exit(1);
     }
 
-    lua_getglobal(console->l, "_init");
-    if(lua_pcall(console->l, 0, 0, 0)) {
+    lua_getglobal(juno->l, "_init");
+    if(lua_pcall(juno->l, 0, 0, 0)) {
         printf("failed to load _init in pcall()\n");
         exit(1);
     }
@@ -28,16 +28,16 @@ void rungame() {
     int run = 1;
 
     while(run) {
-        update();
+        update(juno);
         /*switch(console->event.type) {
             case SDL_TEXTINPUT:
                 strcat(text, console->event.text.text);
                 break;
 
         }*/
-        draw();
-        if (keyPressed("escape")) {
-            console->state = CONSOLE;
+        draw(juno);
+        if (keyPressed(juno,"escape")) {
+            juno->state = CONSOLE;
         }
         //printf("%s\n", text);    
         double current = SDL_GetTicks();
@@ -47,8 +47,8 @@ void rungame() {
 
 
         //run = console->keys[SDL_GetScancodeFromName("escape")];
-        run = (console->event.type != SDL_QUIT);
-        run = run && console->state == GAME;
+        run = (juno->event.type != SDL_QUIT);
+        run = run && juno->state == GAME;
         start = current;
     }
     //strcpy(state, "editor");
@@ -56,8 +56,8 @@ void rungame() {
     printf("Saindo do jogo\n");
 }
 
-void runconsole() {
-    initConsole();
+static void runconsole(Juno * juno) {
+    /*initConsole();
     console->console->run = 1;
     double start = SDL_GetTicks();
     printf("Entrando no console\n");
@@ -75,18 +75,34 @@ void runconsole() {
         //printf("%d\n", console->console->run);
     }
     printf("Saindo do console\n");
-    clearConsole();
+    clearConsole();*/
+    //renderConsole(console->console);
+    //printf("Render console!\n");
+    juno->console->render(juno->console);
+    if (keyPressed(juno, "escape")) {
+        juno->state = GAME;
+    }
+    //console->state = GAME;
 }
 
 int main(int argc, char ** argv) {
-    init();
-    console->l = luaL_newstate();
-    luaL_openlibs(console->l);
-    luaopen_base(console->l);
-    luaopen_juno8(console->l);
+    Juno * juno = init();
+    printf("render3 %d\n", juno->console->cursor.x);
+    //juno->l = luaL_newstate();
+    //printf("eita\n");
+    printf("JUNO %p\n", juno);
+    printf("CONSOLE %p\n", juno->console->juno);
+    printf("LUA %p\n", juno->l);
+    luaL_openlibs(juno->l);
+    luaopen_base(juno->l);
+    luaopen_juno8(juno->l);
 
-    while (console->event.type != SDL_QUIT) {
-        SDL_PollEvent(&(console->event));
+    printf("Iniciando loop\n");
+    while (juno->event.type != SDL_QUIT) {
+        SDL_PollEvent(&(juno->event));
+        SDL_RenderSetScale(juno->render, juno->scale, juno->scale);
+        SDL_SetRenderDrawColor(juno->render, 0, 0, 0, 255);
+        SDL_RenderClear(juno->render);
         /*if (!strcmp(state, "editor")) {
             SDL_PollEvent(&(console->event));
             if (console->keys[SDL_GetScancodeFromName("escape")]) {
@@ -94,17 +110,21 @@ int main(int argc, char ** argv) {
             }
         } else {*/
         //printf("%d\n", console->state);
-        if (console->state == GAME) {
+        if (juno->state == GAME) {
             printf("Entrando no estado game\n");
-            rungame();
-        } else if (console->state == CONSOLE) {
-            printf("Entrando no estado console\n");
-            runconsole();
+            rungame(juno);
+        } else if (juno->state == CONSOLE) {
+            //printf("Entrando no estado console\n");
+            runconsole(juno);
         }
+        flip(juno);
+        SDL_RenderPresent(juno->render);
+        //flip(juno);
         //}
     }
-
-    SDL_DestroyWindow(console->window);
+    free(juno->console);
+    free(juno);
+    SDL_DestroyWindow(juno->window);
     //SDL_DestroyRenderer(console->render);
     SDL_Quit();
     return 0;

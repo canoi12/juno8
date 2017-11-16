@@ -48,87 +48,103 @@ Color hexTorgb(int col) {
     return color;
 }
 
-void init() {
+Juno * init() {
+    Juno * juno;
     printf("Iniciando console...\n");
     initfont();
     SDL_Init(SDL_INIT_EVERYTHING);
-    console = malloc(sizeof(Juno));
+    juno = malloc(sizeof(Juno));
+    printf("%p\n", juno);
     printf("Memoria para console alocada\n");
+    juno->console = malloc(sizeof(Console));
+    //if (!(juno->console->buffer)) {
+    //    printf("Inicia essa bosta, po\n");
+    //}
+    initConsole(juno->console, juno);
+    //printf("teste %p\n", juno->console->juno);
+    //printf("render2 %p\n", juno->console->render);
     for (int addr = 0; addr < MEM_SIZE; addr++) {
-        console->memory[addr] = 0x0;
+        juno->memory[addr] = 0x0;
     }
-    console->state = CONSOLE;
-    console->console = malloc(sizeof(Console));
+    initSheet(juno);
+    printf("%d\n", peek(juno,0x8));
+    juno->state = GAME;
+    //juno->console = malloc(sizeof(Console));
 
-    console->keys = SDL_GetKeyboardState(NULL);
-    console->oldkeys = calloc(sizeof(Uint8),512);
+    juno->keys = SDL_GetKeyboardState(NULL);
+    juno->oldkeys = calloc(sizeof(Uint8),512);
+
+    juno->l = luaL_newstate();
+    lua_pushlightuserdata(juno->l, juno);
+    lua_setglobal(juno->l, "juno");
     //console->memory[0x5f25] = 0x7;
 
     // CLIP
-    clip(0,0,127,127);
+    clip(juno,0,0,127,127);
 
     // COLOR
-    color(0x7);
+    color(juno,0x7);
 
     // PAL and PALT
-    pal(0,0,0);
-    pal(0,0,1);
-    palt(0,1);
+    pal(juno,0,0,0);
+    pal(juno,0,0,1);
+    palt(juno,0,1);
     for (int i = 1; i < 16; i++) {
-        pal(i,i,0);
-        pal(i,i,1);
-        palt(i,0);
+        pal(juno,i,i,0);
+        pal(juno,i,i,1);
+        palt(juno,i,0);
     }
 
     // SDL
-    console->window = SDL_CreateWindow("JUNO-8", SDL_WINDOWPOS_CENTERED,
+    juno->window = SDL_CreateWindow("JUNO", SDL_WINDOWPOS_CENTERED,
                                        SDL_WINDOWPOS_CENTERED,
                                        580, 540, SDL_WINDOW_SHOWN);
-    console->render = SDL_CreateRenderer(console->window, -1, SDL_RENDERER_ACCELERATED);
+    juno->render = SDL_CreateRenderer(juno->window, -1, SDL_RENDERER_ACCELERATED);
     
     // SCALE
-    console->scale = 4;
+    juno->scale = 4;
 
     // FILL PALETTE
     for (int addr = 0; addr < 16; addr++) {
-        console->palette[addr] = hexTorgb(palette[1][addr]);
+        juno->palette[addr] = hexTorgb(palette[1][addr]);
     }
     //console->palette[0x0] = hexTorgb(0x1d2b53);
     printf("Iniciado\n");
+    return juno;
 }
 
-void update() {
+void update(Juno * juno) {
     //printf("teste update\n");
-    SDL_PollEvent(&(console->event));
-    lua_getglobal(console->l, "_update");
-    if(lua_pcall(console->l, 0, 0, 0)) {
+    SDL_PollEvent(&(juno->event));
+    lua_getglobal(juno->l, "_update");
+    if(lua_pcall(juno->l, 0, 0, 0)) {
         printf("Error in _update in pcall()");
     }
 }
 
-void draw() {
-    SDL_RenderSetScale(console->render,console->scale,console->scale);
-    SDL_SetRenderDrawColor(console->render, 0, 0, 0, 255);
-    SDL_RenderClear(console->render);
+void draw(Juno * juno) {
+    SDL_RenderSetScale(juno->render,juno->scale,juno->scale);
+    SDL_SetRenderDrawColor(juno->render, 0, 0, 0, 255);
+    SDL_RenderClear(juno->render);
     //clear(0);
-    lua_getglobal(console->l, "_draw");
-    if(lua_pcall(console->l, 0, 0, 0)) {
+    lua_getglobal(juno->l, "_draw");
+    if(lua_pcall(juno->l, 0, 0, 0)) {
         printf("Error in _draw in pcall()\n");
     }
 
     //pset(1,0,8);
     //SDL_SetRenderDrawColor(console->render,255,0,0,255);
-    flip();
-    SDL_RenderPresent(console->render);
+    flip(juno);
+    SDL_RenderPresent(juno->render);
 }
 
-int keyDown(const char * key) {
-    return console->keys[SDL_GetScancodeFromName(key)];
+int keyDown(Juno * juno, const char * key) {
+    return juno->keys[SDL_GetScancodeFromName(key)];
 }
 
-int keyPressed(const char * key) {
-    int old = console->oldkeys[SDL_GetScancodeFromName(key)];
-    int ret = keyDown(key) && !old;
-    console->oldkeys[SDL_GetScancodeFromName(key)] = keyDown(key);
+int keyPressed(Juno * juno, const char * key) {
+    int old = juno->oldkeys[SDL_GetScancodeFromName(key)];
+    int ret = keyDown(juno,key) && !old;
+    juno->oldkeys[SDL_GetScancodeFromName(key)] = keyDown(juno,key);
     return ret;
 }
