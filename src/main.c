@@ -35,6 +35,12 @@ static void rungame(Juno * juno) {
                 break;
 
         }*/
+        int width, height;
+
+        SDL_GetWindowSize(juno->window, &width, &height);
+
+        int size = floor(MIN(width/128, height/128));
+        juno->scale = size;
         draw(juno);
         if (keyPressed(juno,"escape")) {
             juno->state = CONSOLE;
@@ -100,9 +106,16 @@ int main(int argc, char ** argv) {
     printf("Iniciando loop\n");
     while (juno->event.type != SDL_QUIT) {
         SDL_PollEvent(&(juno->event));
-        SDL_RenderSetScale(juno->render, juno->scale, juno->scale);
+        //SDL_RenderSetScale(juno->render, juno->scale, juno->scale);
         SDL_SetRenderDrawColor(juno->render, 0, 0, 0, 255);
         SDL_RenderClear(juno->render);
+
+        int width, height;
+
+        SDL_GetWindowSize(juno->window, &width, &height);
+
+        int size = floor(MIN(width/128, height/128));
+        juno->scale = size;
         /*if (!strcmp(state, "editor")) {
             SDL_PollEvent(&(console->event));
             if (console->keys[SDL_GetScancodeFromName("escape")]) {
@@ -118,7 +131,6 @@ int main(int argc, char ** argv) {
             runconsole(juno);
         }
         flip(juno);
-        SDL_RenderPresent(juno->render);
         //flip(juno);
         //}
     }

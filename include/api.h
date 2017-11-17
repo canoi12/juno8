@@ -25,7 +25,8 @@ void pset(Juno*, short x, short y, BYTE color);
 
 int pget(Juno*, short x, short y);
 
-void spr(Juno*, BYTE sn, short x, short y, BYTE flip_h, BYTE flip_v);
+void spr(Juno*, BYTE sn, short x, short y, BYTE w, BYTE h, BYTE flip_h, BYTE flip_v);
+void sspr(Juno *, BYTE sx, BYTE sy, BYTE sw, BYTE sh, short dx, short dy);
 
 void line(Juno*, short x0, short y0, short x1, short y1, BYTE color);
 

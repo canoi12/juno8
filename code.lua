@@ -10,6 +10,7 @@ end
 
 function _draw()
     clear()
+    pal()
 
     --camera(x-48, -48)
     camera(x-48,-48)
@@ -21,7 +22,9 @@ function _draw()
     print("TA FUNCIONANDO! HIHIHIHIHIHI", 0, 0, 15)
     camera()
     --pal(7,11)
-    spr(1,64,64)
+    spr(0,64,64,2)
+    pal(11,8)
+    spr(0,96,64,2)
     --spr(0,72,64, true, true)
     --pal(7,9)
     --print(((-1*(x-48))))

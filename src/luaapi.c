@@ -133,10 +133,12 @@ int lua_spr(lua_State * l) {
     BYTE sn = luaL_checknumber(l, 1);
     short x = luaL_optinteger(l, 2, 0);
     short y = luaL_optinteger(l, 3, 0);
-    BYTE flip_h = lua_toboolean(l, 4);
-    BYTE flip_v = lua_toboolean(l, 5);
+    BYTE w = luaL_optinteger(l, 4, 1);
+    BYTE h = luaL_optinteger(l, 5, 1);
+    BYTE flip_h = lua_toboolean(l, 6);
+    BYTE flip_v = lua_toboolean(l, 7);
     Juno * juno = lua_getJuno(l);
-    spr(juno, sn, x, y, flip_h, flip_v);
+    spr(juno, sn, x, y, w, h, flip_h, flip_v);
     return 0;
 }
 

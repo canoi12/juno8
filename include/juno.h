@@ -71,10 +71,12 @@ struct Juno {
     Uint8 * oldkeys;
     SDL_Window * window;
     SDL_Renderer * render;
+    SDL_Texture * buffer;
     SDL_Event event;
     lua_State * l;
     State state;
     Console * console;
+    //void * curState;
     void * teste;
     BYTE scale;
 };

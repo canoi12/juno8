@@ -194,7 +194,7 @@ void pset(Juno * juno, short x, short y, BYTE color) {
     //printf("%d %d %d %d\n", clx, cly, clw, clh);
 
     if (x >= clx && y >= cly &&
-        x <= clw && y <= clh) {
+        x < clw && y < clh) {
         if (x%2) {
             juno->gfx[address] = ((col&0xf)) | (pcol<<4);
         } else {
@@ -222,14 +222,14 @@ int pget(Juno * juno, short x, short y) {
     }
 }
 
-void spr(Juno * juno, BYTE sn, short x, short y, BYTE flip_h, BYTE flip_v) {
+void spr(Juno * juno, BYTE sn, short x, short y, BYTE w, BYTE h, BYTE flip_h, BYTE flip_v) {
     //short fx = 0;
     short fy = 0;
-    if (flip_v) fy = 7;
-    for (int yy = 0; yy < 8; yy++) {
+    if (flip_v) fy = 7*h;
+    for (int yy = 0; yy < 8*h; yy++) {
         short fx = 0;
-        if (flip_h) fx = 7;
-        for (int xx = 0; xx < 8; xx++) {
+        if (flip_h) fx = 7*w;
+        for (int xx = 0; xx < 8*w; xx++) {
             short addr = (sn * 8) + abs(fx) + (abs(fy) * 128);
             BYTE col = peek(juno, addr);
             //printf("%d\n", col);
@@ -365,8 +365,8 @@ void print(Juno * juno, const BYTE * text, short x, short y, BYTE color) {
 }
 
 void clip(Juno * juno, BYTE x, BYTE y, BYTE w, BYTE h) {
-    w = MID(x+w, -127, 127);
-    h = MID(y+h, -127, 127);
+    w = MID(x+w, -127, 128);
+    h = MID(y+h, -127, 128);
     poke(juno, 0x5f20, x);
     poke(juno, 0x5f21, y);
     poke(juno, 0x5f22, w);
@@ -401,26 +401,65 @@ void clear(Juno * juno, BYTE color) {
 }
 
 void flip(Juno * juno) {
-    for (int addr = 0; addr < 0x2000; addr++) {
+    /*for (int addr = 0; addr < 0x2000; addr++) {
         short xx = (addr*2)%128;
         short yy = floor(addr/64);
 
         BYTE colorPos = juno->gfx[addr];
-        BYTE color1 = colorPos & 0xf;
-        BYTE color2 = (colorPos&0xf0)>>4;
+        BYTE color1 = peek(juno, 0x5f10 + (colorPos & 0xf)) & 0xf;
+        BYTE color2 = peek(juno, 0x5f10 + ((colorPos&0xf0)>>4)) & 0xf;
 
         SDL_SetRenderDrawColor(juno->render,
                                juno->palette[color1].r,
                                juno->palette[color1].g,
                                juno->palette[color1].b,
                                255);
-        SDL_RenderDrawPoint(juno->render, 8+xx, 3+yy);
+        //SDL_RenderDrawPoint(juno->render, 8+xx, 3+yy);
 
         SDL_SetRenderDrawColor(juno->render,
                                juno->palette[color2].r,
                                juno->palette[color2].g,
                                juno->palette[color2].b,
                                255);
-        SDL_RenderDrawPoint(juno->render, 8+xx+1, 3+yy);
+        //SDL_RenderDrawPoint(juno->render, 8+xx+1, 3+yy);
+    }*/
+    int pitch = 0;
+    Uint8 *pixels = NULL;
+    Uint32 *px;
+
+    int width, height;
+    SDL_GetWindowSize(juno->window, &width, &height);
+
+    SDL_LockTexture(juno->buffer, NULL, (void**) &px, &pitch);
+    //printf("%d %d %d %d\n", peek(juno, 0x4f20), peek(juno, 0x5f21), peek(juno, 0x5f22), peek(juno, 0x5f23));
+
+    for (short y = peek(juno, 0x5f21); y < peek(juno, 0x5f23); y++) {
+        pixels = (Uint8*)px + (y * pitch);
+            //printf("%p %p\n", px, pixels);
+            //exit(1);
+        for (short x = peek(juno, 0x5f20); x < peek(juno, 0x5f22); x+=2) {
+            short xx = floor (x/2);
+            BYTE p = juno->gfx[ xx + (y * 64)];
+            BYTE col1 = p&0xf;
+            BYTE col2 = (p&0xf0) >> 4;
+            pixels[x * 4] = juno->palette[col1].b;
+            pixels[x * 4 + 1] = juno->palette[col1].g;
+            pixels[x * 4 + 2] = juno->palette[col1].r;
+            pixels[x * 4 + 3] = 255;
+
+            pixels[(x+1) * 4] = juno->palette[col2].b;
+            pixels[(x+1) * 4 + 1] = juno->palette[col2].g;
+            pixels[(x+1) * 4 + 2] = juno->palette[col2].r;
+            pixels[(x+1) * 4 + 3] = 255;
+        }
     }
+
+    SDL_UnlockTexture(juno->buffer);
+
+    SDL_Rect test = {0, 0, 128, 128};
+    //int width, height;
+    //SDL_GetWindowSize(juno->window, &width, &height);
+    SDL_Rect out = { (width/2)-(juno->scale*64), (height/2)-(juno->scale*64), juno->scale * 128, juno->scale * 128};
+    SDL_RenderCopy(juno->render, juno->buffer, &test, &out);
+    SDL_RenderPresent(juno->render);
 }

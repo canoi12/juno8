@@ -132,7 +132,7 @@ static void printLine(Console * console) {
 }
 
 static void drawConsoleText(Console * console) {
-	clear(console->juno, 0);
+	//clear(console->juno, 5);
 	char * pointer = console->buffer + console->scroll.pos * CONSOLE_BUFFER_WIDTH;
 	BYTE * colorPointer = console->colorBuffer + console->scroll.pos * CONSOLE_BUFFER_WIDTH;
 

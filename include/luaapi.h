@@ -20,6 +20,7 @@ int lua_poke(lua_State * l);
 int lua_pset(lua_State * l);
 int lua_pget(lua_State * l);
 int lua_spr(lua_State * l);
+int lua_sspr(lua_State * l);
 int lua_line(lua_State * l);
 int lua_circ(lua_State * l);
 int lua_circfill(lua_State * l);

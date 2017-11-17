@@ -68,7 +68,7 @@ Juno * init() {
     }
     initSheet(juno);
     printf("%d\n", peek(juno,0x8));
-    juno->state = GAME;
+    juno->state = CONSOLE;
     //juno->console = malloc(sizeof(Console));
 
     juno->keys = SDL_GetKeyboardState(NULL);
@@ -80,7 +80,7 @@ Juno * init() {
     //console->memory[0x5f25] = 0x7;
 
     // CLIP
-    clip(juno,0,0,127,127);
+    clip(juno,0,0,128,128);
 
     // COLOR
     color(juno,0x7);
@@ -98,15 +98,20 @@ Juno * init() {
     // SDL
     juno->window = SDL_CreateWindow("JUNO", SDL_WINDOWPOS_CENTERED,
                                        SDL_WINDOWPOS_CENTERED,
-                                       580, 540, SDL_WINDOW_SHOWN);
+                                       580, 540, SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
     juno->render = SDL_CreateRenderer(juno->window, -1, SDL_RENDERER_ACCELERATED);
     
+    SDL_SetWindowMinimumSize(juno->window, 128, 128);
+
+    juno->buffer = SDL_CreateTexture(juno->render, SDL_GetWindowPixelFormat(juno->window), 
+                                     SDL_TEXTUREACCESS_STREAMING, 128, 128);
+
     // SCALE
     juno->scale = 4;
 
     // FILL PALETTE
     for (int addr = 0; addr < 16; addr++) {
-        juno->palette[addr] = hexTorgb(palette[1][addr]);
+        juno->palette[addr] = hexTorgb(palette[0][addr]);
     }
     //console->palette[0x0] = hexTorgb(0x1d2b53);
     printf("Iniciado\n");
@@ -123,7 +128,7 @@ void update(Juno * juno) {
 }
 
 void draw(Juno * juno) {
-    SDL_RenderSetScale(juno->render,juno->scale,juno->scale);
+    //SDL_RenderSetScale(juno->render,juno->scale,juno->scale);
     SDL_SetRenderDrawColor(juno->render, 0, 0, 0, 255);
     SDL_RenderClear(juno->render);
     //clear(0);
